@@ -1,0 +1,28 @@
+name: Offline Cargo Vendor
+
+on:
+  workflow_dispatch:
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          # 确保获取完整的历史记录，防止子模块或深层依赖问题
+          fetch-depth: 0
+
+      - name: 安装系统依赖 (OpenSSL 等)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 执行 Vendor (下载所有依赖)
+        # 关键点：先 cd 进入包含 Cargo.toml 的目录，再执行命令
+        run: |
+          cd apps/desktop/src-tauri/
+          cargo vendor --versioned-dirs vendor
